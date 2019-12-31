@@ -23,7 +23,7 @@ export default class App extends Component {
 
   render() {
     const mockData = {
-      name: "http://api.hys-inc.cn/m.api?_mt=saber.queryUnfinishedAsyncConsult&__systime=1577289744318",
+      name: "http://www.baidu.com",
       entryType: "resource",
       startTime: 10144346.5,
       duration: 654.3999999985099,
@@ -45,7 +45,7 @@ export default class App extends Component {
       encodedBodySize: 265,
       decodedBodySize: 366,
 
-    //   "name": "https://api.hys-inc.cn/m.api?_mt=saber.getConfirmUrlV2&__systime=1577252595006",
+    //   "name": "https://www.baidu.com",
     //   "entryType": "resource",
     //   "startTime": 11025000.599999912,
     //   "duration": 73.19999998435378,
