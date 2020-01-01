@@ -59,3 +59,90 @@ ResourceTiming灵感来自资源加载瀑布图，瀑布图展示了所有网络
 - navigation
 - other
 - use
+
+以下是常用HTML elements and JavaScript APIs的initiatorType对照关系：
+
+```js
+<img src="...">: img
+<img srcset="...">: img
+<link rel="stylesheet" href="...">: link
+<link rel="prefetch" href="...">: link
+<link rel="preload" href="...">: link
+<link rel="prerender" href="...">: link
+<link rel="manfiest" href="...">: link
+<script src="...">: script
+CSS @font-face { src: url(...) }: css
+CSS background: url(...): css
+CSS @import url(...): css
+CSS cursor: url(...): css
+CSS list-style-image: url(...): css
+<body background=''>: body
+<input src=''>: input
+XMLHttpRequest.open(...): xmlhttprequest
+<iframe src="...">: iframe
+<frame src="...">: frame
+<object>: object
+<svg><image xlink:href="...">: image
+<svg><use>: use
+navigator.sendBeacon(...): beacon
+fetch(...): fetch
+<video src="...">: video
+<video poster="...">: video
+<video><source src="..."></video>: source
+<audio src="...">: audio
+<audio><source src="..."></audio>: source
+<picture><source srcset="..."></picture>: source
+<picture><img src="..."></picture>: img
+<picture><img srcsec="..."></picture>: img
+<track src="...">: track
+<embed src="...">: embed
+favicon.ico: link
+EventSource: eventsource
+```
+
+### Cached Resources
+
+以下这个方法可以判断，是否命中了缓存（This algorithm isn’t perfect, but probably covers 99% of cases）：
+
+```js
+function isCacheHit() {
+  // if we transferred bytes, it must not be a cache hit
+  // (will return false for 304 Not Modified)
+  if (transferSize > 0) return false;
+
+  // if the body size is non-zero, it must mean this is a
+  // ResourceTiming2 browser, this was same-origin or TAO,
+  // and transferSize was 0, so it was in the cache
+  if (decodedBodySize > 0) return true;
+
+  // fall back to duration checking (non-RT2 or cross-origin)
+  return duration < 30;
+}
+```
+
+### 304 Not Modified
+
+```js
+function is304() {
+  if (encodedBodySize > 0 &&
+      tranferSize > 0 &&
+      tranferSize < encodedBodySize) {
+    return true;
+  }
+
+  // unknown
+  return null;
+}
+```
+
+### Blocking Time
+
+```js
+var blockingTime = 0;
+if (res.connectEnd && res.connectEnd === res.fetchStart) {
+    blockingTime = res.requestStart - res.connectEnd;
+} else if (res.domainLookupStart) {
+    blockingTime = res.domainLookupStart - res.fetchStart;
+}
+```
+
