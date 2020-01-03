@@ -1,6 +1,11 @@
 # web-performance-analysis
 
-参考资料：https://nicj.net/navigationtiming-in-practice/ https://nicj.net/resourcetiming-in-practice/
+参考资料：
+https://nicj.net/navigationtiming-in-practice/ 
+https://nicj.net/resourcetiming-in-practice/
+http://www.alloyteam.com/2020/01/14184/#prettyPhoto
+https://www.w3.org/TR/resource-timing-1/
+https://www.w3.org/TR/resource-timing-2/
 
 ## 1. 介绍
 
