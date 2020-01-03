@@ -146,7 +146,91 @@ if (res.connectEnd && res.connectEnd === res.fetchStart) {
 }
 ```
 
-## 2. http2 性能优化
+## 2. Performance api
+
+1. PerformanceObserver API
+用于检测性能的事件，这个 API 利用了观察者模式。
+获取资源信息
+
+![per](/images/per1.jpg)
+
+监测 TTI
+
+![per](/images/per2.jpg)
+
+监测 长任务
+
+![per](/images/per3.jpg)
+
+2. Navigation Timing API
+
+https://www.w3.org/TR/navigation-timing-2/
+performance.getEntriesByType("navigation");
+
+![per](/images/per4.jpg)
+
+![per](/images/per5.jpg)
+
+不同阶段之间是连续的吗? —— 不连续
+每个阶段都一定会发生吗？—— 不一定
+
+重定向次数：performance.navigation.redirectCount
+重定向耗时: redirectEnd - redirectStart
+DNS 解析耗时: domainLookupEnd - domainLookupStart
+TCP 连接耗时: connectEnd - connectStart
+SSL 安全连接耗时: connectEnd - secureConnectionStart
+网络请求耗时 (TTFB): responseStart - requestStart
+数据传输耗时: responseEnd - responseStart
+DOM 解析耗时: domInteractive - responseEnd
+资源加载耗时: loadEventStart - domContentLoadedEventEnd
+首包时间: responseStart - domainLookupStart
+白屏时间: responseEnd - fetchStart
+首次可交互时间: domInteractive - fetchStart
+DOM Ready 时间: domContentLoadEventEnd - fetchStart
+页面完全加载时间: loadEventStart - fetchStart
+http 头部大小： transferSize - encodedBodySize
+
+3. Resource Timing API
+
+https://w3c.github.io/resource-timing/
+performance.getEntriesByType("resource");
+
+![per](/images/per6.jpg)
+![per](/images/per7.jpg)
+
+```js
+
+// 某类资源的加载时间，可测量图片、js、css、XHR
+resourceListEntries.forEach(resource => {
+    if (resource.initiatorType == 'img') {
+    console.info(`Time taken to load ${resource.name}: `, resource.responseEnd - resource.startTime);
+    }
+});
+```
+
+4. paint Timing API
+
+https://w3c.github.io/paint-timing/
+首屏渲染时间、首次有内容渲染时间
+
+![per](/images/per8.jpg)
+
+
+5. User Timing API
+https://www.w3.org/TR/user-timing-2/#introduction
+主要是利用 mark 和 measure 方法去打点计算某个阶段的耗时，例如某个函数的耗时等。
+
+6. High Resolution Time API
+https://w3c.github.io/hr-time/#dom-performance-timeorigin
+主要包括 now() 方法和 timeOrigin 属性。
+
+7. Performance Timeline API
+https://www.w3.org/TR/performance-timeline-2/#introduction
+
+
+
+
+## 3. http2 性能优化
 
 1. 二进制分帧
 
