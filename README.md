@@ -233,6 +233,68 @@ https://w3c.github.io/hr-time/#dom-performance-timeorigin
 https://www.w3.org/TR/performance-timeline-2/#introduction
 
 
+### 2.1 分析
+
+基于 performance 我们可以测量如下几个方面：
+mark、measure、navigation、resource、paint、frame。
+
+let p = window.performance.getEntries();
+重定向次数：performance.navigation.redirectCount
+JS 资源数量：p.filter(ele => ele.initiatorType === "script").length
+CSS 资源数量：p.filter(ele => ele.initiatorType === "css").length
+AJAX 请求数量：p.filter(ele => ele.initiatorType === "xmlhttprequest").length
+IMG 资源数量：p.filter(ele => ele.initiatorType === "img").length
+总资源数量: window.performance.getEntriesByType("resource").length
+
+不重复的耗时时段区分：
+重定向耗时: redirectEnd - redirectStart
+DNS 解析耗时: domainLookupEnd - domainLookupStart
+TCP 连接耗时: connectEnd - connectStart
+SSL 安全连接耗时: connectEnd - secureConnectionStart
+网络请求耗时 (TTFB): responseStart - requestStart
+HTML 下载耗时：responseEnd - responseStart
+DOM 解析耗时: domInteractive - responseEnd
+资源加载耗时: loadEventStart - domContentLoadedEventEnd
+
+其他组合分析：
+白屏时间: domLoading - fetchStart
+粗略首屏时间: loadEventEnd - fetchStart 或者 domInteractive - fetchStart
+DOM Ready 时间: domContentLoadEventEnd - fetchStart
+页面完全加载时间: loadEventStart - fetchStart
+
+JS 总加载耗时:
+const p = window.performance.getEntries();
+let cssR = p.filter(ele => ele.initiatorType === "script");
+Math.max(...cssR.map((ele) => ele.responseEnd)) - Math.min(...cssR.map((ele) => ele.startTime));
+
+CSS 总加载耗时:
+
+```js
+const p = window.performance.getEntries();
+let cssR = p.filter(ele => ele.initiatorType === "css");
+Math.max(...cssR.map((ele) => ele.responseEnd)) - Math.min(...cssR.map((ele) => ele.startTime));
+```
+
+### 2.2 异常上报
+1）js error
+监听 window.onerror 事件
+2）promise reject 的异常
+监听 unhandledrejection 事件
+
+```js
+window.addEventListener("unhandledrejection", function (event) {
+    console.warn("WARNING: Unhandled promise rejection. Shame on you! Reason: "
+        + event.reason);
+});
+```
+
+3）资源加载失败
+window.addEventListener('error')
+4）网络请求失败
+重写 window.XMLHttpRequest 和 window.fetch 捕获请求错误
+5）iframe 异常
+window.frames[0].onerror
+6）window.console.error
 
 
 ## 3. http2 性能优化
