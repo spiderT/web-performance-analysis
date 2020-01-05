@@ -218,12 +218,61 @@ resourceListEntries.forEach(resource => {
 https://w3c.github.io/paint-timing/
 首屏渲染时间、首次有内容渲染时间
 
+```js
+const paintEntries = performance.getEntriesByType("paint");
+
+
+// This will return an array consisting of two objects:
+
+[
+  {
+    "name": "first-paint",
+    "entryType": "paint",
+    "startTime": 17718.514999956824,
+    "duration": 0
+  },
+  {
+    "name": "first-contentful-paint",
+    "entryType": "paint",
+    "startTime": 17718.519999994896,
+    "duration": 0
+  }
+]
+
+// From the entries, we can extract out the metrics:
+
+paintEntries.forEach((paintMetric) => {
+  console.info(`${paintMetric.name}: ${paintMetric.startTime}`);
+});
+```
+
 ![per](/images/per8.jpg)
 
 
 5. User Timing API
 https://www.w3.org/TR/user-timing-2/#introduction
 主要是利用 mark 和 measure 方法去打点计算某个阶段的耗时，例如某个函数的耗时等。
+
+```js
+pperformance.mark('starting_calculations')
+const multiply = 82 * 21;
+performance.mark('ending_calculations')
++ performance.measure("multiply_measure", "starting_calculations", "ending_calculations");
+
+performance.mark('starting_awesome_script')
+function awesomeScript() {
+  console.log('doing awesome stuff')
+}
+performance.mark('starting_awesome_script');
++ performance.measure("awesome_script", "starting_awesome_script", "starting_awesome_script");
+
+// To get all our measures, we can use our trusty getEntriesByType:
+
+const measures = performance.getEntriesByType('measure');
+    measures.forEach(measureItem => {
+      console.log(`${measureItem.name}: ${measureItem.duration}`);
+    });
+```
 
 6. High Resolution Time API
 https://w3c.github.io/hr-time/#dom-performance-timeorigin
