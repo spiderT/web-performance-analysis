@@ -157,24 +157,24 @@ if (res.connectEnd && res.connectEnd === res.fetchStart) {
 用于检测性能的事件，这个 API 利用了观察者模式。
 获取资源信息
 
-![per](/images/per1.jpg)
+![per](images/per1.jpg)
 
 监测 TTI
 
-![per](/images/per2.jpg)
+![per](images/per2.jpg)
 
 监测 长任务
 
-![per](/images/per3.jpg)
+![per](images/per3.jpg)
 
 2. Navigation Timing API
 
 https://www.w3.org/TR/navigation-timing-2/
 performance.getEntriesByType("navigation");
 
-![per](/images/per4.jpg)
+![per](images/per4.jpg)
 
-![per](/images/per5.jpg)
+![per](images/per5.jpg)
 
 不同阶段之间是连续的吗? —— 不连续
 每个阶段都一定会发生吗？—— 不一定
@@ -200,8 +200,8 @@ http 头部大小： transferSize - encodedBodySize
 https://w3c.github.io/resource-timing/
 performance.getEntriesByType("resource");
 
-![per](/images/per6.jpg)
-![per](/images/per7.jpg)
+![per](images/per6.jpg)
+![per](images/per7.jpg)
 
 ```js
 
@@ -246,7 +246,7 @@ paintEntries.forEach((paintMetric) => {
 });
 ```
 
-![per](/images/per8.jpg)
+![per](images/per8.jpg)
 
 
 5. User Timing API
@@ -354,7 +354,7 @@ http1.x诞生的时候是明文协议，其格式由三部分组成：start line
 
 http2.0用binary格式定义了一个一个的frame，和http1.x的格式对比如下图：
 
-![http2](/images/http1.jpg)
+![http2](images/http1.jpg)
 
 http2.0的格式定义更接近tcp层的方式，这张二机制的方式十分高效且精简。
 
@@ -372,7 +372,7 @@ payload就是request的正文了
 
 关键之一就是在 应用层(HTTP/2)和传输层(TCP or UDP)之间增加一个二进制分帧层。
 
-![http2](/images/http2.jpg)
+![http2](images/http2.jpg)
 
 
 对它们采用二进制格式的编码 ，其中 HTTP1.x 的首部信息会被封装到 HEADER frame，而相应的 Request Body 则封装到 DATA frame 里面。
@@ -389,7 +389,7 @@ HTTP/2 通过让所有数据流共用同一个连接，可以更有效地使用 
 
 由于 TCP 连接的减少而使网络拥塞状况得以改善，同时慢启动时间的减少,使拥塞和丢包恢复速度更快
 
-![http2](/images/http3.jpg)
+![http2](images/http3.jpg)
 
 2. 多路复用 (Multiplexing)||连接共享
 
@@ -404,7 +404,7 @@ source：RFC-2616-8.1.4 Practical Considerations
 
 一个request对应一个stream并分配一个id，这样一个连接上可以有多个stream，每个stream的frame可以随机的混杂在一起，接收方可以根据stream id将frame再归属到各自不同的request里面。因而 HTTP/2 能多路复用(Multiplexing) ，允许同时通过单一的 HTTP/2 连接发起多重的请求-响应消息。
 
-![http2](/images/http4.jpg)
+![http2](images/http4.jpg)
 
 因此 HTTP/2 可以很容易的去实现多流并行而不用依赖建立多个 TCP 连接，HTTP/2 把 HTTP 协议通信的基本单位缩小为一个一个的帧，这些帧对应着逻辑流中的消息。并行地在同一个 TCP 连接上双向交换消息。
 
@@ -426,14 +426,14 @@ SPDY/2使用的是gzip压缩算法，但后来出现的两种攻击方式BREACH�
 
 http2.0使用encoder来减少需要传输的header大小，通讯双方各自cache一份header fields表，既避免了重复header的传输，又减小了需要传输的大小。高效的压缩算法可以很大的压缩header，减少发送包的数量从而降低延迟。
 
-![http2](/images/http5.jpg)
+![http2](images/http5.jpg)
 
 
 服务端推送（Server Push）
 
 服务端推送是一种在客户端请求之前发送数据的机制。在 HTTP/2 中，服务器可以对客户端的一个请求发送多个响应。Server Push 让 HTTP1.x 时代使用内嵌资源的优化手段变得没有意义；如果一个请求是由你的主页发起的，服务器很可能会响应主页内容、logo 以及样式表，因为它知道客户端会用到这些东西。这相当于在一个 HTML 文档内集合了所有的资源，不过与之相比，服务器推送还有一个很大的优势：可以缓存！也让在遵循同源的情况下，不同页面之间可以共享缓存资源成为可能。
 
-![http2](/images/http6.jpg)
+![http2](images/http6.jpg)
 
 http2.0引入RST_STREAM类型的frame，可以在不断开连接的前提下取消某个request的stream，表现更好。
 
@@ -445,3 +445,187 @@ TCP协议通过sliding window的算法来做流量控制。发送方有个sendin
 
 更安全的SSL
 HTTP2.0使用了tls的拓展ALPN来做协议升级，除此之外加密这块还有一个改动，HTTP2.0对tls的安全性做了近一步加强，通过黑名单机制禁用了几百种不再安全的加密算法，一些加密算法可能还在被继续使用。如果在ssl协商过程当中，客户端和server的cipher suite没有交集，直接就会导致协商失败，从而请求失败。在server端部署http2.0的时候要特别注意这一点。
+
+
+## 4. chrome-performance页面性能分析
+
+### 4.1. 模拟移动设备的CPU
+
+移动设备的CPU一般比台式机和笔记本弱很多。当你想分析页面的时候，可以用CPU控制器（CPU Throttling）来模拟移动端设备CPU。
+
+1. 在DevTools中，点击 Performance 的 tab。
+
+2. 确保 Screenshots checkbox 被选中
+
+3. 点击 Capture Settings（⚙️）按钮，DevTools会展示很多设置，来模拟各种状况
+
+4. 对于模拟CPU，选择2x slowdown，于是Devtools就开始模拟两倍低速CPU
+
+5. 在DevTools中，点击 Record 。这时候Devtools就开始录制各种性能指标
+
+6. 进行快速操作，点击stop，处理数据，然后显示性能报告
+
+ ### 4.2. 分析报告
+
+FPS（frames per second）是用来分析动画的一个主要性能指标。让页面效果能够达到>=60fps(帧)/s的刷新频率以避免出现卡顿。能保持在60的FPS的话，那么用户体验就是不错的。
+
+为什么是60fps?
+
+我们的目标是保证页面要有高于每秒60fps(帧)的刷新频率，这和目前大多数显示器的刷新率相吻合(60Hz)。如果网页动画能够做到每秒60帧，就会跟显示器同步刷新，达到最佳的视觉效果。这意味着，一秒之内进行60次重新渲染，每次重新渲染的时间不能超过16.66毫秒。
+
+### 4.3. 界面介绍
+
+![performance](images/performanc1.jpg)
+
+从上到下分别为4个区域 
+1. 具体条，包含录制，刷新页面分析，清除结果等一系列操作 
+2. overview总览图，高度概括随时间线的变动，包括FPS，CPU，NET 
+3. 火焰图，从不同的角度分析框选区域 。例如：Network，Frames, Interactions, Main等 
+4. 总结区域：精确到毫秒级的分析，以及按调用层级，事件分类的整理
+
+ ![performance](images/performanc2.jpg)
+
+
+【Overview】
+
+Overview 窗格包含以下三个图表：
+
+1. FPS。每秒帧数。绿色竖线越高，FPS 越高。 FPS 图表上的红色块表示长时间帧，很可能会出现卡顿
+
+2. CPU。 CPU 资源。此面积图指示消耗 CPU 资源的事件类型
+
+3. NET。每条彩色横杠表示一种资源。横杠越长，检索资源所需的时间越长。 每个横杠的浅色部分表示等待时间（从请求资源到第一个字节下载完成的时间）
+
+可以放大显示一部分记录，以便简化分析。使用 Overview 窗格可以放大显示一部分记录。 放大后，火焰图会自动缩放以匹配同一部分
+
+选择部分后，可以使用 W、A、S 和 D 键调整您的选择。 W 和 S 分别代表放大和缩小。 A 和 D 分别代表左移和右移
+
+【火焰图】
+
+在火焰图上看到一到三条垂直的虚线。蓝线代表 DOMContentLoaded 事件。 绿线代表首次绘制的时间。 红线代表 load 事件
+
+在火焰图中选择事件时，Details 窗格会显示与事件相关的其他信息
+
+【总结区域】
+
+蓝色(Loading)：网络通信和HTML解析
+黄色(Scripting)：JavaScript执行
+紫色(Rendering)：样式计算和布局，即重排
+绿色(Painting)：重绘
+灰色(other)：其它事件花费的时间
+白色(Idle)：空闲时间
+
+ 
+Loading事件
+
+![performance](images/performanc3.jpg)
+
+Scripting事件
+ 
+![performance](images/performanc4.jpg)
+
+Rendering事件
+
+ ![performance](images/performanc5.jpg) 
+
+ Painting事件
+
+ ![performance](images/performanc6.jpg) 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Rendering事件
+
+事件
+
+描述
+
+Invalidate layout
+
+当DOM更改导致页面布局失效时触发
+
+Layout
+
+页面布局计算执行时触发
+
+Recalculate style
+
+Chrome重新计算元素样式时触发
+
+Scroll
+
+内嵌的视窗滚动时触发
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Painting事件
+
+事件
+
+描述
+
+Composite Layers
+
+Chrome的渲染引擎完成图片层合并时触发
+
+Image Decode
+
+一个图片资源完成解码后触发
+
+Image Resize
+
+一个图片被修改尺寸后触发
+
+Paint
+
+合并后的层被绘制到对应显示区域后触发
+
+分类: 工具使用
+
+
+
+
+
+
