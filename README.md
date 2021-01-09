@@ -1,11 +1,19 @@
 # web-performance-analysis
 
-参考资料：
-https://nicj.net/navigationtiming-in-practice/ 
-https://nicj.net/resourcetiming-in-practice/
-http://www.alloyteam.com/2020/01/14184/#prettyPhoto
-https://www.w3.org/TR/resource-timing-1/
-https://www.w3.org/TR/resource-timing-2/
+- [web-performance-analysis](#web-performance-analysis)
+  - [1. 介绍](#1-介绍)
+    - [Initiator Types](#initiator-types)
+    - [Cached Resources](#cached-resources)
+    - [304 Not Modified](#304-not-modified)
+    - [Blocking Time](#blocking-time)
+  - [2. Performance api](#2-performance-api)
+    - [2.1 分析](#21-分析)
+    - [2.2 异常上报](#22-异常上报)
+  - [3. http2 性能优化](#3-http2-性能优化)
+  - [4. chrome-performance页面性能分析](#4-chrome-performance页面性能分析)
+    - [4.1. 模拟移动设备的CPU](#41-模拟移动设备的cpu)
+    - [4.2. 分析报告](#42-分析报告)
+    - [4.3. 界面介绍](#43-界面介绍)
 
 ## 1. 介绍
 
@@ -153,9 +161,9 @@ if (res.connectEnd && res.connectEnd === res.fetchStart) {
 
 ## 2. Performance api
 
-1. PerformanceObserver API
-用于检测性能的事件，这个 API 利用了观察者模式。
-获取资源信息
+1. PerformanceObserver API  
+用于检测性能的事件，这个 API 利用了观察者模式。  
+获取资源信息  
 
 ![per](images/per1.jpg)
 
@@ -169,36 +177,36 @@ if (res.connectEnd && res.connectEnd === res.fetchStart) {
 
 2. Navigation Timing API
 
-https://www.w3.org/TR/navigation-timing-2/
-performance.getEntriesByType("navigation");
+https://www.w3.org/TR/navigation-timing-2/  
+performance.getEntriesByType("navigation");  
 
 ![per](images/per4.jpg)
 
 ![per](images/per5.jpg)
 
-不同阶段之间是连续的吗? —— 不连续
-每个阶段都一定会发生吗？—— 不一定
+不同阶段之间是连续的吗? —— 不连续  
+每个阶段都一定会发生吗？—— 不一定  
 
-重定向次数：performance.navigation.redirectCount
-重定向耗时: redirectEnd - redirectStart
-DNS 解析耗时: domainLookupEnd - domainLookupStart
-TCP 连接耗时: connectEnd - connectStart
-SSL 安全连接耗时: connectEnd - secureConnectionStart
-网络请求耗时 (TTFB): responseStart - requestStart
-数据传输耗时: responseEnd - responseStart
-DOM 解析耗时: domInteractive - responseEnd
-资源加载耗时: loadEventStart - domContentLoadedEventEnd
-首包时间: responseStart - domainLookupStart
-白屏时间: responseEnd - fetchStart
-首次可交互时间: domInteractive - fetchStart
-DOM Ready 时间: domContentLoadEventEnd - fetchStart
-页面完全加载时间: loadEventStart - fetchStart
-http 头部大小： transferSize - encodedBodySize
+重定向次数：performance.navigation.redirectCount  
+重定向耗时: redirectEnd - redirectStart  
+DNS 解析耗时: domainLookupEnd - domainLookupStart  
+TCP 连接耗时: connectEnd - connectStart  
+SSL 安全连接耗时: connectEnd - secureConnectionStart  
+网络请求耗时 (TTFB): responseStart - requestStart  
+数据传输耗时: responseEnd - responseStart  
+DOM 解析耗时: domInteractive - responseEnd  
+资源加载耗时: loadEventStart - domContentLoadedEventEnd  
+首包时间: responseStart - domainLookupStart  
+白屏时间: responseEnd - fetchStart  
+首次可交互时间: domInteractive - fetchStart  
+DOM Ready 时间: domContentLoadEventEnd - fetchStart  
+页面完全加载时间: loadEventStart - fetchStart  
+http 头部大小： transferSize - encodedBodySize  
 
-3. Resource Timing API
+3. Resource Timing API  
 
-https://w3c.github.io/resource-timing/
-performance.getEntriesByType("resource");
+https://w3c.github.io/resource-timing/  
+performance.getEntriesByType("resource");  
 
 ![per](images/per6.jpg)
 ![per](images/per7.jpg)
@@ -213,10 +221,10 @@ resourceListEntries.forEach(resource => {
 });
 ```
 
-4. paint Timing API
+4. paint Timing API  
 
-https://w3c.github.io/paint-timing/
-首屏渲染时间、首次有内容渲染时间
+https://w3c.github.io/paint-timing/  
+首屏渲染时间、首次有内容渲染时间  
 
 ```js
 const paintEntries = performance.getEntriesByType("paint");
@@ -248,10 +256,9 @@ paintEntries.forEach((paintMetric) => {
 
 ![per](images/per8.jpg)
 
-
-5. User Timing API
-https://www.w3.org/TR/user-timing-2/#introduction
-主要是利用 mark 和 measure 方法去打点计算某个阶段的耗时，例如某个函数的耗时等。
+5. User Timing API  
+https://www.w3.org/TR/user-timing-2/#introduction  
+主要是利用 mark 和 measure 方法去打点计算某个阶段的耗时，例如某个函数的耗时等。  
 
 ```js
 pperformance.mark('starting_calculations')
@@ -274,47 +281,46 @@ const measures = performance.getEntriesByType('measure');
     });
 ```
 
-6. High Resolution Time API
-https://w3c.github.io/hr-time/#dom-performance-timeorigin
-主要包括 now() 方法和 timeOrigin 属性。
+6. High Resolution Time API  
+https://w3c.github.io/hr-time/#dom-performance-timeorigin  
+主要包括 now() 方法和 timeOrigin 属性。  
 
-7. Performance Timeline API
-https://www.w3.org/TR/performance-timeline-2/#introduction
-
+7. Performance Timeline API  
+https://www.w3.org/TR/performance-timeline-2/#introduction  
 
 ### 2.1 分析
 
-基于 performance 我们可以测量如下几个方面：
-mark、measure、navigation、resource、paint、frame。
+基于 performance 我们可以测量如下几个方面：  
+mark、measure、navigation、resource、paint、frame。  
 
-let p = window.performance.getEntries();
-重定向次数：performance.navigation.redirectCount
-JS 资源数量：p.filter(ele => ele.initiatorType === "script").length
-CSS 资源数量：p.filter(ele => ele.initiatorType === "css").length
-AJAX 请求数量：p.filter(ele => ele.initiatorType === "xmlhttprequest").length
-IMG 资源数量：p.filter(ele => ele.initiatorType === "img").length
-总资源数量: window.performance.getEntriesByType("resource").length
+let p = window.performance.getEntries();  
+重定向次数：performance.navigation.redirectCount  
+JS 资源数量：p.filter(ele => ele.initiatorType === "script").length  
+CSS 资源数量：p.filter(ele => ele.initiatorType === "css").length  
+AJAX 请求数量：p.filter(ele => ele.initiatorType === "xmlhttprequest").length  
+IMG 资源数量：p.filter(ele => ele.initiatorType === "img").length  
+总资源数量: window.performance.getEntriesByType("resource").length  
 
-不重复的耗时时段区分：
-重定向耗时: redirectEnd - redirectStart
-DNS 解析耗时: domainLookupEnd - domainLookupStart
-TCP 连接耗时: connectEnd - connectStart
-SSL 安全连接耗时: connectEnd - secureConnectionStart
-网络请求耗时 (TTFB): responseStart - requestStart
-HTML 下载耗时：responseEnd - responseStart
-DOM 解析耗时: domInteractive - responseEnd
-资源加载耗时: loadEventStart - domContentLoadedEventEnd
+不重复的耗时时段区分：  
+重定向耗时: redirectEnd - redirectStart  
+DNS 解析耗时: domainLookupEnd - domainLookupStart  
+TCP 连接耗时: connectEnd - connectStart  
+SSL 安全连接耗时: connectEnd - secureConnectionStart  
+网络请求耗时 (TTFB): responseStart - requestStart  
+HTML 下载耗时：responseEnd - responseStart  
+DOM 解析耗时: domInteractive - responseEnd  
+资源加载耗时: loadEventStart - domContentLoadedEventEnd  
 
-其他组合分析：
-白屏时间: domLoading - fetchStart
-粗略首屏时间: loadEventEnd - fetchStart 或者 domInteractive - fetchStart
-DOM Ready 时间: domContentLoadEventEnd - fetchStart
-页面完全加载时间: loadEventStart - fetchStart
+其他组合分析：  
+白屏时间: domLoading - fetchStart  
+粗略首屏时间: loadEventEnd - fetchStart 或者 domInteractive - fetchStart  
+DOM Ready 时间: domContentLoadEventEnd - fetchStart  
+页面完全加载时间: loadEventStart - fetchStart  
 
-JS 总加载耗时:
-const p = window.performance.getEntries();
-let cssR = p.filter(ele => ele.initiatorType === "script");
-Math.max(...cssR.map((ele) => ele.responseEnd)) - Math.min(...cssR.map((ele) => ele.startTime));
+JS 总加载耗时:  
+const p = window.performance.getEntries();  
+let cssR = p.filter(ele => ele.initiatorType === "script");  
+Math.max(...cssR.map((ele) => ele.responseEnd)) - Math.min(...cssR.map((ele) => ele.startTime));  
 
 CSS 总加载耗时:
 
@@ -325,10 +331,12 @@ Math.max(...cssR.map((ele) => ele.responseEnd)) - Math.min(...cssR.map((ele) => 
 ```
 
 ### 2.2 异常上报
-1）js error
-监听 window.onerror 事件
-2）promise reject 的异常
-监听 unhandledrejection 事件
+
+1）js error  
+监听 window.onerror 事件  
+
+2）promise reject 的异常  
+监听 unhandledrejection 事件  
 
 ```js
 window.addEventListener("unhandledrejection", function (event) {
@@ -337,14 +345,16 @@ window.addEventListener("unhandledrejection", function (event) {
 });
 ```
 
-3）资源加载失败
-window.addEventListener('error')
-4）网络请求失败
-重写 window.XMLHttpRequest 和 window.fetch 捕获请求错误
-5）iframe 异常
-window.frames[0].onerror
-6）window.console.error
+3）资源加载失败  
+window.addEventListener('error')  
 
+4）网络请求失败  
+重写 window.XMLHttpRequest 和 window.fetch 捕获请求错误  
+
+5）iframe 异常  
+window.frames[0].onerror  
+
+6）window.console.error  
 
 ## 3. http2 性能优化
 
@@ -374,7 +384,6 @@ payload就是request的正文了
 
 ![http2](images/http2.jpg)
 
-
 对它们采用二进制格式的编码 ，其中 HTTP1.x 的首部信息会被封装到 HEADER frame，而相应的 Request Body 则封装到 DATA frame 里面。
 HTTP/2 通信都在一个连接上完成，这个连接可以承载任意数量的双向数据流。
 
@@ -393,7 +402,7 @@ HTTP/2 通过让所有数据流共用同一个连接，可以更有效地使用 
 
 2. 多路复用 (Multiplexing)||连接共享
 
-多路复用允许同时通过单一的 HTTP/2 连接发起多重的请求-响应消息。
+多路复用允许同时通过单一的 HTTP/2 连接发起多重的请求-响应消息。  
 众所周知 ，在 HTTP/1.1 协议中 「浏览器客户端在同一时间，针对同一域名下的请求有一定数量限制。超过限制数目的请求会被阻塞」。
 
 Clients that use persistent connections SHOULD limit the number of simultaneous connections that they maintain to a given server. A single-user client SHOULD NOT maintain more than 2 connections with any server or proxy. A proxy SHOULD use up to 2*N connections to another server or proxy, where N is the number of simultaneously active users. These guidelines are intended to improve HTTP response times and avoid congestion.
@@ -410,7 +419,6 @@ source：RFC-2616-8.1.4 Practical Considerations
 
 前面还提到过连接共享之后，需要优先级和请求依赖的机制配合才能解决关键请求被阻塞的问题。http2.0里的每个stream都可以设置又优先级（Priority）和依赖（Dependency）。优先级高的stream会被server优先处理和返回给客户端，stream还可以依赖其它的sub streams。优先级和依赖都是可以动态调整的。动态调整在有些场景下很有用，假想用户在用你的app浏览商品的时候，快速的滑动到了商品列表的底部，但前面的请求先发出，如果不把后面的请求优先级设高，用户当前浏览的图片要到最后才能下载完成，显然体验没有设置优先级好。同理依赖在有些场景下也有妙用。
 
-
 3. 首部压缩（Header Compression）
 
 http1.x的header由于cookie和user agent很容易膨胀，而且每次都要重复发送。
@@ -419,7 +427,7 @@ HTTP/1.1并不支持 HTTP 首部压缩，为此 SPDY 和 HTTP/2 应运而生
 
 这里普及一个小知识点。现在大家都知道tcp有slow start的特性，三次握手之后开始发送tcp segment，第一次能发送的没有被ack的segment数量是由initial tcp window大小决定的。这个initial tcp window根据平台的实现会有差异，但一般是2个segment或者是4k的大小（一个segment大概是1500个字节），也就是说当你发送的包大小超过这个值的时候，要等前面的包被ack之后才能发送后续的包，显然这种情况下延迟更高。intial window也并不是越大越好，太大会导致网络节点的阻塞，丢包率就会增加，具体细节可以参考IETF这篇文章。http的header现在膨胀到有可能会超过这个intial window的值了，所以更显得压缩header的重要性。
 
-压缩算法的选择
+压缩算法的选择  
 SPDY/2使用的是gzip压缩算法，但后来出现的两种攻击方式BREACH和CRIME使得即使走ssl的SPDY也可以被破解内容，最后综合考虑采用的是一种叫HPACK的压缩算法。这两个漏洞和相关算法可以点击链接查看更多的细节，不过这种漏洞主要存在于浏览器端，因为需要通过javascript来注入内容并观察payload的变化。
 
 现在SPDY 使用的是通用的DEFLATE 算法，而 HTTP/2 则使用了专门为首部压缩而设计的 HPACK 算法。
@@ -427,7 +435,6 @@ SPDY/2使用的是gzip压缩算法，但后来出现的两种攻击方式BREACH�
 http2.0使用encoder来减少需要传输的header大小，通讯双方各自cache一份header fields表，既避免了重复header的传输，又减小了需要传输的大小。高效的压缩算法可以很大的压缩header，减少发送包的数量从而降低延迟。
 
 ![http2](images/http5.jpg)
-
 
 服务端推送（Server Push）
 
@@ -437,15 +444,14 @@ http2.0使用encoder来减少需要传输的header大小，通讯双方各自cac
 
 http2.0引入RST_STREAM类型的frame，可以在不断开连接的前提下取消某个request的stream，表现更好。
 
-重置连接表现更好
+重置连接表现更好  
 很多app客户端都有取消图片下载的功能场景，对于http1.x来说，是通过设置tcp segment里的reset flag来通知对端关闭连接的。这种方式会直接断开连接，下次再发请求就必须重新建立连接。http2.0引入RST_STREAM类型的frame，可以在不断开连接的前提下取消某个request的stream，表现更好。
 
-流量控制（Flow Control）
+流量控制（Flow Control）  
 TCP协议通过sliding window的算法来做流量控制。发送方有个sending window，接收方有receive window。http2.0的flow control是类似receive window的做法，数据的接收方通过告知对方自己的flow window大小表明自己还能接收多少数据。只有Data类型的frame才有flow control的功能。对于flow control，如果接收方在flow window为零的情况下依然更多的frame，则会返回block类型的frame，这张场景一般表明http2.0的部署出了问题。
 
-更安全的SSL
+更安全的SSL  
 HTTP2.0使用了tls的拓展ALPN来做协议升级，除此之外加密这块还有一个改动，HTTP2.0对tls的安全性做了近一步加强，通过黑名单机制禁用了几百种不再安全的加密算法，一些加密算法可能还在被继续使用。如果在ssl协商过程当中，客户端和server的cipher suite没有交集，直接就会导致协商失败，从而请求失败。在server端部署http2.0的时候要特别注意这一点。
-
 
 ## 4. chrome-performance页面性能分析
 
@@ -465,7 +471,7 @@ HTTP2.0使用了tls的拓展ALPN来做协议升级，除此之外加密这块还
 
 6. 进行快速操作，点击stop，处理数据，然后显示性能报告
 
- ### 4.2. 分析报告
+### 4.2. 分析报告
 
 FPS（frames per second）是用来分析动画的一个主要性能指标。让页面效果能够达到>=60fps(帧)/s的刷新频率以避免出现卡顿。能保持在60的FPS的话，那么用户体验就是不错的。
 
@@ -477,14 +483,14 @@ FPS（frames per second）是用来分析动画的一个主要性能指标。让
 
 ![performance](images/performanc1.jpg)
 
-从上到下分别为4个区域 
-1. 具体条，包含录制，刷新页面分析，清除结果等一系列操作 
-2. overview总览图，高度概括随时间线的变动，包括FPS，CPU，NET 
-3. 火焰图，从不同的角度分析框选区域 。例如：Network，Frames, Interactions, Main等 
+从上到下分别为4个区域
+
+1. 具体条，包含录制，刷新页面分析，清除结果等一系列操作
+2. overview总览图，高度概括随时间线的变动，包括FPS，CPU，NET
+3. 火焰图，从不同的角度分析框选区域 。例如：Network，Frames, Interactions, Main等
 4. 总结区域：精确到毫秒级的分析，以及按调用层级，事件分类的整理
 
- ![performance](images/performanc2.jpg)
-
+![performance](images/performanc2.jpg)
 
 【Overview】
 
@@ -508,124 +514,50 @@ Overview 窗格包含以下三个图表：
 
 【总结区域】
 
-蓝色(Loading)：网络通信和HTML解析
-黄色(Scripting)：JavaScript执行
-紫色(Rendering)：样式计算和布局，即重排
-绿色(Painting)：重绘
-灰色(other)：其它事件花费的时间
-白色(Idle)：空闲时间
+蓝色(Loading)：网络通信和HTML解析  
+黄色(Scripting)：JavaScript执行  
+紫色(Rendering)：样式计算和布局，即重排  
+绿色(Painting)：重绘  
+灰色(other)：其它事件花费的时间  
+白色(Idle)：空闲时间  
 
- 
 Loading事件
 
 ![performance](images/performanc3.jpg)
 
 Scripting事件
- 
+
 ![performance](images/performanc4.jpg)
 
 Rendering事件
 
- ![performance](images/performanc5.jpg) 
-
- Painting事件
-
- ![performance](images/performanc6.jpg) 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
-Rendering事件
-
-事件
-
-描述
-
-Invalidate layout
-
-当DOM更改导致页面布局失效时触发
-
-Layout
-
-页面布局计算执行时触发
-
-Recalculate style
-
-Chrome重新计算元素样式时触发
-
-Scroll
-
-内嵌的视窗滚动时触发
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
+![performance](images/performanc5.jpg)
 
 Painting事件
 
-事件
+![performance](images/performanc6.jpg)
 
-描述
+> Rendering事件  
 
-Composite Layers
+| 事件 | 描述 |
+| --- | ---- |
+| Invalidate layout | 当DOM更改导致页面布局失效时触发 |
+| Layout | 页面布局计算执行时触发 |
+| Recalculate style | Chrome重新计算元素样式时触发 |
+| Scroll | 内嵌的视窗滚动时触发 |
 
-Chrome的渲染引擎完成图片层合并时触发
+> Painting事件  
 
-Image Decode
+| 事件 | 描述 |
+| --- | ---- |
+| Composite Layers | Chrome的渲染引擎完成图片层合并时触发 |
+| Image Decode | 一个图片资源完成解码后触发 |
+| Image Resize | 一个图片被修改尺寸后触发 |
+| Paint | 合并后的层被绘制到对应显示区域后触发 |
 
-一个图片资源完成解码后触发
-
-Image Resize
-
-一个图片被修改尺寸后触发
-
-Paint
-
-合并后的层被绘制到对应显示区域后触发
-
-分类: 工具使用
-
-
-
-
-
-
+参考资料：  
+https://nicj.net/navigationtiming-in-practice/  
+https://nicj.net/resourcetiming-in-practice/  
+http://www.alloyteam.com/2020/01/14184/#prettyPhoto  
+https://www.w3.org/TR/resource-timing-1/  
+https://www.w3.org/TR/resource-timing-2/  
